@@ -1,0 +1,45 @@
+---
+- name: Install Vagrant on Ubuntu
+  hosts: local
+  become: yes  # Run all tasks with elevated privileges (sudo)
+  become_method: sudo
+  become_user: root
+
+  tasks:
+    - name: Update APT package list
+      apt:
+        update_cache: yes
+
+    - name: Install required dependencies (curl, software-properties-common)
+      apt:
+        name:
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add HashiCorp GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: Add Vagrant official repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+
+    - name: Update package list after adding the repository
+      apt:
+        update_cache: yes
+
+    - name: Install Vagrant
+      apt:
+        name: vagrant
+        state: present
+
+    - name: Verify Vagrant installation (vagrant --version)
+      command: vagrant --version
+      register: vagrant_version
+
+    - name: Display Vagrant version
+      debug:
+        var: vagrant_version.stdout
